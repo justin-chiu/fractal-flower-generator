@@ -1,0 +1,524 @@
+* {
+    box-sizing: border-box;
+    font-family: arial;
+}
+
+h1 {
+    font-weight: bold;
+    font-size: 24px;
+    margin: 0px;
+}
+
+h2 {
+    font-weight: bold;
+    font-size: 14px;
+    margin: 0px;
+}
+
+body {
+    margin: 0;
+    width: 100%;
+    background-color: #Ffffff;
+}
+
+.button {
+    flex-grow: 0;
+    width: 100%;
+    height: 48px;
+    font-size: 20px;
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    background-color: black;
+    color: white;
+    font-size: 16px;
+    border-radius: 7px;
+}
+
+.button:hover {
+    background-color: #2d2d2d;
+    cursor: pointer;
+}
+
+.button-margin {
+    margin-bottom: 12px;
+}
+
+#canvas-wrapper {
+    width: 100%;
+    height: 100vh;
+    padding: 32px 10px 24px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#canvas-container {
+    width: 100%;
+    flex-grow: 1;
+    position: relative;
+}
+
+#canvas {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.sidebar__panel {
+    position: relative;
+    width: 350px;
+    min-height: 100%;
+    background-color: white;
+    border: 1px solid #D3D3D3;
+    border-top: none;
+    position: fixed;
+    margin-left: 75px;
+    z-index: 1;
+    box-shadow: 0 0 4px rgb(193, 193, 193);
+    display: none;
+}
+
+.panel__item {
+    padding-left: 24px;
+    padding-right: 24px;
+    padding-top: 30px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid #D3D3D3;
+    min-height: 90px;
+}
+
+.item__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.item__bottom {}
+
+.slider {
+    margin-top: 30px;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 3px;
+    border-radius: 2px;
+    background: #BBBBBB;
+    outline: none;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: black;
+    cursor: pointer;
+}
+
+.input {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100px;
+    height: 28px;
+    background-color: #FBFBFB;
+    border: 1px solid #D3D3D3;
+    font-size: 16px;
+    padding: 6px;
+}
+
+.panel__close {
+    width: 40px;
+    height: 60px;
+    background-color: white;
+    border: 1px solid #D3D3D3;
+    border-top: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin-right: -40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.panel__close:hover {
+    background-color: rgb(244, 244, 244);
+    cursor: pointer;
+}
+
+#close__icon {
+    width: 10px;
+}
+
+.settings__tabs {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #D3D3D3;
+}
+
+.tab__button {
+    width: 33.33%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #FCFCFC;
+    border-top: none;
+}
+
+.tab__button:hover {
+    background-color: rgb(244, 244, 244);
+    cursor: pointer;
+}
+
+.tab__button.middle {
+    border-left: 1px solid #D3D3D3;
+    border-right: 1px solid #D3D3D3;
+}
+
+.tab__button.active {
+    background-color: #E3E3E3;
+}
+
+.tab__content {
+    animation: fadeEffect 1s;
+    /* Fading effect takes 1 second */
+}
+
+
+/* Go from zero to full opacity */
+
+@keyframes fadeEffect {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.sidebar {
+    position: fixed;
+    z-index: 2;
+    left: 0;
+    width: 75px;
+    height: 100%;
+    background-color: white;
+    border-right: 1px solid #D3D3D3;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: stretch;
+}
+
+.sidebar__item {
+    width: 100%;
+    height: 110px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid #D3D3D3;
+}
+
+.sidebar__item.bottom {
+    border-top: 1px solid #D3D3D3;
+}
+
+.sidebar__item:hover {
+    background-color: rgb(244, 244, 244);
+    cursor: pointer;
+}
+
+.sidebar__item.active {
+    background-color: #E3E3E3;
+}
+
+.sidebar__icon {
+    width: 32%;
+    opacity: 40%;
+}
+
+#logo {
+    width: 60%;
+}
+
+.sidebar__logo {
+    width: 100%;
+    height: 90px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 1px solid #D3D3D3;
+}
+
+.topbar {
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    right: 0;
+    margin-top: 24px;
+    margin-right: 24px;
+}
+
+#topbar__button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    height: 48px;
+    font-size: 20px;
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    background-color: black;
+    color: white;
+    font-size: 16px;
+    border-radius: 7px;
+}
+
+#topbar__button:hover {
+    background-color: #2d2d2d;
+    cursor: pointer;
+}
+
+.zoom__wrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-end;
+    margin-top: 24px;
+    margin-right: 3px;
+}
+
+.zoom__button {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px;
+    background-color: white;
+    border: 1px solid #D3D3D3;
+    border-radius: 5px;
+}
+
+.zoom__button:hover {
+    background-color: rgb(244, 244, 244);
+    cursor: pointer;
+}
+
+.bottombar {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    margin-bottom: 24px;
+    margin-right: 27px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+.logo__wrapper {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+#logo__bottom {
+    width: 35px;
+    margin: 12px;
+}
+
+#logo__text {
+    font-size: 16px;
+}
+
+.placeholder {
+    width: 100%;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.grey-text {
+    color: #B4B4B4;
+    font-size: 18px;
+    font-weight: 400;
+    text-align: center;
+}
+
+.reg-text {
+    font-size: 18px;
+    font-weight: 400;
+    text-align: center;
+}
+
+#placeholder__animate {
+    opacity: 10%;
+    width: 90px;
+}
+
+#f-dots {
+    width: 60%;
+}
+
+p {
+    line-height: 120%;
+}
+
+.export__tabs {
+    width: 100%;
+    height: 50px;
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #D3D3D3;
+}
+
+.e-tab__button {
+    width: 50%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #FCFCFC;
+    border-top: none;
+}
+
+.e-tab__button:hover {
+    background-color: rgb(244, 244, 244);
+    cursor: pointer;
+}
+
+.e-tab__button.left {
+    border-right: 1px solid #D3D3D3;
+}
+
+.e-tab__button.active {
+    background-color: #E3E3E3;
+}
+
+.e-tab__content {
+    animation: fadeEffect 1s;
+    /* Fading effect takes 1 second */
+}
+
+
+
+
+
+
+
+
+
+
+/* Customize the label (the container) */
+.c-container {
+    display: block;
+    position: relative;
+    padding-left: 24px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-size: 22px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    margin-top: 24px;
+  }
+  
+  /* Hide the browser's default checkbox */
+  .c-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+  }
+  
+  /* Create a custom checkbox */
+  .checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 16px;
+    width: 16px;
+    background-color: rgb(255, 255, 255);
+    border: 1px solid black;
+  }
+  
+  /* On mouse-over, add a grey background color */
+  .c-container:hover input ~ .checkmark {
+    background-color: #ccc;
+  }
+  
+  /* When the checkbox is checked, add a blue background */
+  .c-container input:checked ~ .checkmark {
+    background-color: #000000;
+  }
+  
+  /* Create the checkmark/indicator (hidden when not checked) */
+  .c-checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+  }
+  
+  /* Show the checkmark when checked */
+  .c-container input:checked ~ .checkmark:after {
+    display: block;
+  }
+  
+  /* Style the checkmark/indicator */
+  .c-container .checkmark:after {
+    left: 9px;
+    top: 5px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 3px 3px 0;
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    transform: rotate(45deg);
+  }
+
+  .reg {
+      font-weight: normal;
+  }
+
+  .color__selection {
+
+  }
+
+  .color__preview {
+
+  }
+
+  .color__value {
+
+  }
+
+  .value__hex {
+
+  }
+
+  .value__opacity {
+
+  }
+
+  .header__bar {
+    background-color: white;
+    height: 75px;
+    width: 100%;
+    position: fixed;
+    display: flex;
+    justify-content: stretch;
+    align-items: center;
+  }
+
+  
