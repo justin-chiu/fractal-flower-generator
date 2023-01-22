@@ -5,7 +5,7 @@
 
 h1 {
     font-weight: bold;
-    font-size: 24px;
+    font-size: 20px;
     margin: 0px;
 }
 
@@ -18,7 +18,13 @@ h2 {
 body {
     margin: 0;
     width: 100%;
-    background-color: #Ffffff;
+    background-color: #ffffff;
+    transition: 0.4s;
+}
+
+body.dark {
+    background-color: black;
+    transition: 0.4s;
 }
 
 .button {
@@ -35,6 +41,11 @@ body {
     border-radius: 7px;
 }
 
+.button.na {
+    pointer-events: none;
+    opacity: 40%;
+}
+
 .button:hover {
     background-color: #2d2d2d;
     cursor: pointer;
@@ -47,7 +58,7 @@ body {
 #canvas-wrapper {
     width: 100%;
     height: 100vh;
-    padding: 32px 10px 24px 10px;
+    /*padding: 32px 10px 24px 10px;*/
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -65,6 +76,11 @@ body {
     transform: translateX(-50%);
 }
 
+.sidebar {
+    z-index: 450;
+    position: relative;
+}
+
 .sidebar__panel {
     position: relative;
     width: 350px;
@@ -74,7 +90,7 @@ body {
     border-top: none;
     position: fixed;
     margin-left: 75px;
-    z-index: 1;
+    z-index: 3;
     box-shadow: 0 0 4px rgb(193, 193, 193);
     display: none;
 }
@@ -82,10 +98,15 @@ body {
 .panel__item {
     padding-left: 24px;
     padding-right: 24px;
-    padding-top: 30px;
-    padding-bottom: 30px;
+    padding-top: 20px;
+    padding-bottom: 20px;
     border-bottom: 1px solid #D3D3D3;
-    min-height: 90px;
+    min-height: 75px;
+}
+
+.panel__item.centered {
+    display: flex;
+    align-items: center;
 }
 
 .item__top {
@@ -93,8 +114,6 @@ body {
     justify-content: space-between;
     align-items: flex-start;
 }
-
-.item__bottom {}
 
 .slider {
     margin-top: 30px;
@@ -186,7 +205,6 @@ body {
 
 .tab__content {
     animation: fadeEffect 1s;
-    /* Fading effect takes 1 second */
 }
 
 
@@ -248,7 +266,7 @@ body {
 
 .sidebar__logo {
     width: 100%;
-    height: 90px;
+    height: 75px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -268,16 +286,27 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 24px;
-    height: 48px;
+    padding: 18px;
+    height: 36px;
     font-size: 20px;
     -webkit-appearance: none;
     appearance: none;
     border: none;
     background-color: black;
     color: white;
-    font-size: 16px;
+    font-size: 14px;
     border-radius: 7px;
+    transition: 0.4s;
+}
+
+#topbar__button.dark {
+    background-color: white;
+    color: black;
+    transition: 0.4s;
+}
+
+#topbar__button.dark:hover {
+    background-color: rgb(234, 234, 234);
 }
 
 #topbar__button:hover {
@@ -290,13 +319,13 @@ body {
     flex-direction: column;
     justify-content: flex-start;
     align-items: flex-end;
-    margin-top: 24px;
+    margin-top: 70px;
     margin-right: 3px;
 }
 
 .zoom__button {
-    width: 50px;
-    height: 50px;
+    width: 42px;
+    height: 42px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -339,7 +368,7 @@ body {
 
 .placeholder {
     width: 100%;
-    height: 70vh;
+    min-height: 400px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -409,15 +438,8 @@ p {
 }
 
 
-
-
-
-
-
-
-
-
 /* Customize the label (the container) */
+
 .c-container {
     display: block;
     position: relative;
@@ -430,19 +452,23 @@ p {
     -ms-user-select: none;
     user-select: none;
     margin-top: 24px;
-  }
-  
-  /* Hide the browser's default checkbox */
-  .c-container input {
+}
+
+
+/* Hide the browser's default checkbox */
+
+.c-container input {
     position: absolute;
     opacity: 0;
     cursor: pointer;
     height: 0;
     width: 0;
-  }
-  
-  /* Create a custom checkbox */
-  .checkmark {
+}
+
+
+/* Create a custom checkbox */
+
+.checkmark {
     position: absolute;
     top: 0;
     left: 0;
@@ -450,32 +476,42 @@ p {
     width: 16px;
     background-color: rgb(255, 255, 255);
     border: 1px solid black;
-  }
-  
-  /* On mouse-over, add a grey background color */
-  .c-container:hover input ~ .checkmark {
+}
+
+
+/* On mouse-over, add a grey background color */
+
+.c-container:hover input~.checkmark {
     background-color: #ccc;
-  }
-  
-  /* When the checkbox is checked, add a blue background */
-  .c-container input:checked ~ .checkmark {
+}
+
+
+/* When the checkbox is checked, add a blue background */
+
+.c-container input:checked~.checkmark {
     background-color: #000000;
-  }
-  
-  /* Create the checkmark/indicator (hidden when not checked) */
-  .c-checkmark:after {
+}
+
+
+/* Create the checkmark/indicator (hidden when not checked) */
+
+.c-checkmark:after {
     content: "";
     position: absolute;
     display: none;
-  }
-  
-  /* Show the checkmark when checked */
-  .c-container input:checked ~ .checkmark:after {
+}
+
+
+/* Show the checkmark when checked */
+
+.c-container input:checked~.checkmark:after {
     display: block;
-  }
-  
-  /* Style the checkmark/indicator */
-  .c-container .checkmark:after {
+}
+
+
+/* Style the checkmark/indicator */
+
+.c-container .checkmark:after {
     left: 9px;
     top: 5px;
     width: 5px;
@@ -485,40 +521,232 @@ p {
     -webkit-transform: rotate(45deg);
     -ms-transform: rotate(45deg);
     transform: rotate(45deg);
-  }
+}
 
-  .reg {
-      font-weight: normal;
-  }
+.reg {
+    font-weight: normal;
+}
 
-  .color__selection {
-
-  }
-
-  .color__preview {
-
-  }
-
-  .color__value {
-
-  }
-
-  .value__hex {
-
-  }
-
-  .value__opacity {
-
-  }
-
-  .header__bar {
+.header__bar {
     background-color: white;
     height: 75px;
     width: 100%;
     position: fixed;
     display: flex;
-    justify-content: stretch;
+    justify-content: space-between;
     align-items: center;
-  }
+    z-index: 2;
+    border-bottom: 1px solid #D3D3D3;
+    padding-left: 100px;
+    padding-right: 28px;
+    padding-top: 24px;
+    padding-bottom: 24px;
+    transition: 0.4s;
+}
 
-  
+.header__bar.dark {
+    background-color: rgb(0, 0, 0);
+    border-bottom: 1px solid #262626;
+    transition: 0.4s;
+}
+
+.header__left {}
+
+.header__right {
+    display: flex;
+}
+
+.button__container {
+    display: flex;
+}
+
+.file-name {
+    font-weight: lighter;
+    font-size: 20px;
+}
+
+#share__button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 18px;
+    height: 36px;
+    font-size: 16px;
+    -webkit-appearance: none;
+    appearance: none;
+    border: none;
+    background-color: rgb(216, 216, 216);
+    color: black;
+    font-size: 14px;
+    border-radius: 7px;
+    margin-right: 8px;
+}
+
+#sharebutton:hover {
+    background-color: rgb(200, 200, 200);
+    cursor: pointer;
+}
+
+.bgcol__container {
+    height: 36px;
+    border: 1px solid #D3D3D3;
+    margin-right: 24px;
+    border-radius: 5px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+}
+
+.bgcol__sample {
+    width: 18px;
+    height: 18px;
+    background-color: red;
+    margin-right: 8px;
+}
+
+.bgcol__text {
+    font-weight: lighter;
+    font-size: 14px;
+    margin: 0;
+}
+
+#animate-controls.frozen {
+    pointer-events: none;
+    opacity: 40%;
+}
+
+
+/* The switch - the box around the toggle */
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 36px;
+    margin-right: 12px;
+}
+
+
+/* Hide default HTML checkbox */
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+
+/* The toggle */
+
+.toggle {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgb(0, 0, 0);
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+.toggle:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 4px;
+    bottom: 5px;
+    background-color: rgb(255, 255, 255);
+    -webkit-transition: .4s;
+    transition: .4s;
+}
+
+input:checked+.toggle {
+    filter: invert(100%)
+}
+
+input:focus+.toggle {
+    filter: invert(100%)
+}
+
+input:checked+.toggle:before {
+    -webkit-transform: translateX(26px);
+    -ms-transform: translateX(26px);
+    transform: translateX(26px);
+}
+
+
+/* Rounded toggle */
+
+.toggle.round {
+    border-radius: 34px;
+}
+
+.toggle.round:before {
+    border-radius: 50%;
+}
+
+#bottom__bar {
+    transition: 0.4s;
+}
+
+#bottom__bar.dark {
+    filter: invert(100%);
+}
+
+#zoom-in {
+    transition: 0.4s;
+}
+
+#zoom-in.dark {
+    filter: invert(100%);
+}
+
+#zoom-out {
+    transition: 0.4s;
+}
+
+#zoom-out.dark {
+    filter: invert(100%);
+}
+
+#sidebar {
+    transition: 0.4s;
+}
+
+#sidebar.dark {
+    filter: invert(100%);
+}
+
+#panel__settings {
+    transition: 0.4s;
+}
+
+#panel__settings.dark {
+    filter: invert(100%);
+}
+
+#panel__animate {
+    transition: 0.4s;
+}
+
+#panel__animate.dark {
+    filter: invert(100%);
+}
+
+#panel__export {
+    transition: 0.4s;
+}
+
+#panel__export.dark {
+    filter: invert(100%);
+}
+
+#panel__info {
+    transition: 0.4s;
+}
+
+#panel__info.dark {
+    filter: invert(100%);
+}

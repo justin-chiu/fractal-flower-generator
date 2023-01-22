@@ -1,13 +1,14 @@
 // ------getting HTML elements------
 
+const body = document.querySelector("body");
+
 // get canvas elements
 const cvsWrapper = document.querySelector("#canvas-wrapper");
 const cvsContainer = document.querySelector("#canvas-container");
 const cvs = document.querySelector("#canvas");
-const body = document.querySelector("body");
 
 // get all sliders and inputs
-let tabFields = [];
+const tabFields = [];
 for (let i = 0; i < 3; i++) {
     let parent = "#tab_" + (i + 1) + " ";
     tabFields[i] = {
@@ -22,6 +23,17 @@ for (let i = 0; i < 3; i++) {
 
 
 
+
+
+// ------GLOBAL PATTERN VARIABLES------
+
+let activePattern = []; // pattern currently being animated TOWARDS
+let lastPattern = []; // pattern currently being displayed or animated FROM
+// lastPattern and activePattern are the same, unless an animation is in progress
+// if an animation is in progress, lastPattern is the origin, activePattern is the destination
+let transPattern; // pattern currently being displayed DURING an animation
+
+
 // click on default tabs in sidebar
 document.getElementById("default").click();
 document.getElementById("e-default").click();
@@ -29,9 +41,18 @@ document.getElementById("e-default").click();
 
 
 
-// ------DEFAULT PATTERN SETTINGS------
+
+
+
+// ------PATTERN SETTINGS------
+
+const fDimensions = { x: 757, y: 1000 } // default bounding box dimensions of F at 1000px height
+
+
+// NODES
 
 const fNodes = [ // default node bezier coordinates at 1000px height (1x scale)
+    // straight line [X,Y] or bezier [handle1_X, handle1_Y, handle2_X, handle2_Y, destX, destY]
     [289.22, 280.39],
     [364.81, 280.39],
     [395.48, 176.34, 427.25, 116.1, 483.12, 63.53],
@@ -59,49 +80,6 @@ const fNodes = [ // default node bezier coordinates at 1000px height (1x scale)
     [289.22, 280.39]
 ]
 
-const fDimensions = { x: 757, y: 1000 } // default bounding box dimensions of F at 1000px height
-
-const fDefaultSettings = { // default context transformations and F characteristics
-
-    angleInitial: 0, // rotation of whole circle
-    angleCircle: 0, // rotation increment around center of circle, relative value, can be calculated by number of Fs
-    angleF: 0, // rotation around center of individual F character, absolute value
-    offset: 25, // distance from center of circle (radius)
-    scale: 1.2,
-    fillStyle: "black",
-    fillOn: true,
-    strokeStyle: "black",
-    lineWidth: 1,
-    strokeOn: false,
-    weightValue: 0,
-    nodes: fNodes,
-    backgroundColor: "#FFFFFF"
-}
-
-
-// ------utility functions------
-
-function randomNumber(min, max) { // inclusive of both min and max numbers
-    return Math.round(Math.random() * (max - min)) + min;
-}
-
-function easeMath(x) {
-    return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
-}
-
-
-// ------drawing functions------
-
-// clones the fDefaultSettings object and returns a settingsObject with any overwritten settings
-function customSettings(overwrite = {}) {
-
-    let newSettings = JSON.parse(JSON.stringify(fDefaultSettings));
-
-    Object.assign(newSettings, overwrite);
-
-    return newSettings;
-}
-
 // returns a set of modified nodes based on fNodes depending on the weight value
 function weightedNodes(weightAdd = 0) { // default weight (bold) = 0
 
@@ -114,7 +92,6 @@ function weightedNodes(weightAdd = 0) { // default weight (bold) = 0
             [2, 2],
             [2, 4],
             [3, 0],
-            //
             [15, 2],
             [15, 4],
             [16, 0],
@@ -175,7 +152,7 @@ function weightedNodes(weightAdd = 0) { // default weight (bold) = 0
         ]
     }
 
-    var modifyNodes = JSON.parse(JSON.stringify(fNodes));
+    var modifyNodes = JSON.parse(JSON.stringify(fNodes)); // copy the default fNodes to a new obj
 
     if (weightAdd && weightAdd >= 0) {
 
@@ -188,12 +165,101 @@ function weightedNodes(weightAdd = 0) { // default weight (bold) = 0
         for (let i = 0; i < nodesMove.right.length; i++) {
             modifyNodes[nodesMove.right[i][0]][nodesMove.right[i][1]] += weightAdd;
         }
-
-        // adjusting handles
     }
 
     return modifyNodes;
 }
+
+
+// PATTERN SETTINGS OBJ
+
+const fDefaultSettings = { // default context transformations and F characteristics
+
+    angleInitial: 0, // rotation of whole circle
+    angleCircle: 0, // rotation increment around center of circle, relative value, can be calculated by number of Fs
+    angleF: 0, // rotation around center of individual F character, absolute value
+    offset: 25, // distance from center of circle (radius)
+    scale: 1.2,
+    fillStyle: "black",
+    fillOn: true,
+    strokeStyle: "black",
+    lineWidth: 1,
+    strokeOn: false,
+    weightValue: 0, // weight added to letter
+    nodes: fNodes,
+    backgroundColor: "#FFFFFF"
+}
+
+// returns a settingsObj with default pattern settings + custom overrides
+function customSettings(overwrite = {}) { // overwrite contains all overridden properties
+
+    // clones the fDefaultSettings object with all default properties inside
+    let newSettings = JSON.parse(JSON.stringify(fDefaultSettings));
+
+    // returns a settingsObject with any overwritten custom settings passed in as parameters
+    Object.assign(newSettings, overwrite);
+    return newSettings;
+}
+
+// sets activePattern array to three settingsObj with random settings and colours
+function randomPattern() {
+
+    const colorSets = ["three-unique", "two-to-one", "global"] // types of colour combo
+        // const setSelect = colorSets[randomNumber(0, (colorSets.length - 1))] // selects a random colour combo type
+    const setSelect = "two-to-one"; // which colour combo type
+    let layerColors = {}; // put colour combo type
+
+    if (setSelect == "three-unique") { // all three layers of Fs have different, random colours
+        for (let i = 0; i < 3; i++) {
+            layerColors[i] = randomColor();
+        }
+    } else if (setSelect == "two-to-one") { // two layers have the same randomly-generated colour
+        const commonColor = randomColor();
+        const uniqueLayer = randomNumber(0, 2);
+        for (let i = 0; i < 3; i++) {
+            if (i == uniqueLayer) {
+                layerColors[i] = randomColor();
+            } else {
+                layerColors[i] = commonColor;
+            }
+        }
+    } else { // all three layers have the same randomly-generated colour
+        let commonColor = randomColor();
+        layerColors[0] = commonColor;
+        layerColors[1] = commonColor;
+        layerColors[2] = commonColor;
+    }
+
+    for (let i = 0; i < 3; i++) { // setting random weights, angles, offsets for all three layers
+        activePattern[i].weightValue = randomNumber(0, 80);
+        activePattern[i].nodes = weightedNodes(activePattern[i].weightValue);
+        activePattern[i].angleF = randomNumber(0, 359);
+        activePattern[i].offset = randomNumber(0, 100);
+        activePattern[i].fillStyle = layerColors[i]; // setting layer colours
+        // activePattern[i].backgroundColor = randomColor(); // setting bg colour
+    }
+}
+
+// returns a random colour in hsla() string format based on min/max h,s,l,a values
+function randomColor() {
+    let color = {}
+    color.h = randomNumber(0, 360); // hue min/max
+    color.s = randomNumber(60, 100); // saturation min/max
+    color.l = randomNumber(20, 60); // lightness min/max
+    color.a = 1;
+
+    return "hsla(" + color.h + "," + color.s + "%," + color.l + "%," + color.a + ")"; // returns string
+}
+
+function randomNumber(min, max) { // inclusive of both min and max numbers
+    return Math.round(Math.random() * (max - min)) + min;
+}
+
+
+
+
+
+// ------DRAWING FUNCTIONS------
 
 // draws F at ctx (0,0)
 function drawF(settingsObj) { // function parameters are passed as an object
@@ -252,7 +318,7 @@ function placeF(settingsObj) {
 
 }
 
-// runs placeF() a specified number of times
+// runs placeF() a specified number of times, creates 1x CIRCLE of Fs
 function circleFs(repeats, settingsObj = Object.assign({}, fDefaultSettings)) {
 
     ctx.rotate(settingsObj.angleInitial); // rotation of whole circle
@@ -266,7 +332,8 @@ function circleFs(repeats, settingsObj = Object.assign({}, fDefaultSettings)) {
     return settingsObj;
 }
 
-// makes pattern of 3 circles based on activePattern obj
+// makes pattern of 3x OVERLAPPING CIRCLES based on pattern array
+// pattern parameter contains 3x settingsObj
 function makePattern(pattern = activePattern, setLast = true) {
 
     ctx.restore();
@@ -282,7 +349,7 @@ function makePattern(pattern = activePattern, setLast = true) {
 
     }
 
-    body.style.backgroundColor = pattern[randomNumber(0, 2)].backgroundColor;
+    // body.style.backgroundColor = pattern[randomNumber(0, 2)].backgroundColor;
 
     setFields(pattern);
 
@@ -291,121 +358,151 @@ function makePattern(pattern = activePattern, setLast = true) {
     }
 };
 
-function randomPattern() {
 
-    const colorSets = ["three-unique", "two-to-one", "global"] // types of colour combo
-    // const setSelect = colorSets[randomNumber(0, (colorSets.length - 1))]
-    const setSelect = "two-to-one"; // which colour combo type
-    let layerColors = {}; // put colour combo type
-
-    if (setSelect == "three-unique") {
-        for (let i = 0; i < 3; i++) {
-            layerColors[i] = randomColor();
-        }
-    }
-    else if (setSelect == "two-to-one") {
-        const commonColor = randomColor();
-        const uniqueLayer = randomNumber(0, 2);
-        for (let i = 0; i < 3; i++) {
-            if (i == uniqueLayer) {
-                layerColors[i] = randomColor();
-            }
-            else {
-                layerColors[i] = commonColor;
-            }
-        }
-    }
-    else {
-        let commonColor = randomColor();
-        layerColors[0] = commonColor;
-        layerColors[1] = commonColor;
-        layerColors[2] = commonColor;
-    }
-
-
-
-    for (let i = 0; i < 3; i++) {
-        activePattern[i].weightValue = randomNumber(0, 80);
-        activePattern[i].nodes = weightedNodes(activePattern[i].weightValue);
-        activePattern[i].angleF = randomNumber(0, 359);
-        activePattern[i].offset = randomNumber(0, 100);
-        activePattern[i].fillStyle = layerColors[i];
-        // activePattern[i].backgroundColor = randomColor()
-
-    }
-    // makePattern(activePattern);
-}
-
-function randomColor() {
-    let color = {}
-    color.h = randomNumber(0, 360);
-    color.s = randomNumber(60, 100);
-    color.l = randomNumber(20, 60);
-    color.a = 1;
-
-    return "hsla(" + color.h + "," + color.s + "%," + color.l + "%," + color.a + ")";
-}
+// ------COLOUR FUNCTIONS------
 
 function changeColor(lastHSL, activeHSL, progress) {
+
+    let hslArray = [lastHSL, activeHSL];
+
+    for (let i = 0; i < hslArray.length; i++) {
+        hslArray[i] = hslStringToArray(hslArray[i]);
+    }
+
+    let hslDiff = [];
+
+    for (let i = 0; i < hslArray[0].length; i++) {
+        hslDiff[i] = hslArray[1][i] - hslArray[0][i];
+    }
+
+    let hslTrans = [];
+
+    for (let i = 0; i < hslDiff.length; i++) {
+        hslTrans[i] = hslArray[0][i] + hslDiff[i] * progress;
+    }
+
+    return "hsla(" + hslTrans[0] + "," + hslTrans[1] + "%," + hslTrans[2] + "%," + hslTrans[3] + ")";
+
+}
+
+// takes a hsla() string and returns an array (4)
+function hslStringToArray(hslString) {
+
+    hslString = hslString.replace("hsla(", "");
+    hslString = hslString.replace("hsl(", "");
+    hslString = hslString.replace(")", "");
+    hslString = hslString.replace("%", "");
+    hslString = hslString.replace("%", "");
+
+    const stringSpaces = hslString.split(" ").length - 1;
+
+    for (let i = 0; i < stringSpaces; i++) {
+        hslString = hslString.replace(" ", "");
+    }
+
+    let hslValues = hslString.split(",");
+
+    for (let i = 0; i < hslValues.length; i++) {
+        hslValues[i] = parseFloat(hslValues[i]);
+    }
+
+    return hslValues;
+
 }
 
 
+// ------ANIMATION FUNCTIONS------
 
-const animationTime = 800;
+let animationTime = 800; // in ms
+let animateStatus = false; // whether animation is happening or not
 
-function animatePattern() {
+// animates from lastPattern to activePattern (if they are different)
+function animatePattern(duration) {
 
     animateStatus = true;
 
-    //get current value of animation parameters
-
-    let patternDiff = [
+    let patternDiff = [ // the differences between properties in lastPattern/activePattern
         {}, {}, {}
     ];
 
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 3; i++) { // calculating differences between last/active Patterns
         patternDiff[i].weightValue = activePattern[i].weightValue - lastPattern[i].weightValue;
         patternDiff[i].angleF = activePattern[i].angleF - lastPattern[i].angleF;
         patternDiff[i].offset = activePattern[i].offset - lastPattern[i].offset;
     }
 
-    let transPattern = Object.assign({}, lastPattern);
-    const fps = 30;
-    const animationFrames = fps * animationTime / 1000;
+    transPattern = Object.assign({}, lastPattern); // duplicating lastPattern to new array
+    let fps = 30;
+    let animationFrames = Math.floor(fps * duration / 1000); // number of frames needed given fps and duration of animation
 
-    for (let i = 1; i < animationFrames; i++) {
+    for (let i = 0; i < animationFrames; i++) {
         if (i == animationFrames - 1) { // last instance
-            setTimeout(function () {
-                /* for (let i = 0; i < 3; i++) {
-                    transPattern[i].weightValue += patternDiff[i].weightValue / animationFrames;
-                    transPattern[i].angleF += patternDiff[i].angleF / animationFrames;
-                    transPattern[i].offset += patternDiff[i].offset / animationFrames;
-                }*/
+            setTimeout(function() {
                 animateStatus = false;
-                makePattern(activePattern, true);
+                makePattern(activePattern);
             }, i * 1000 / fps);
-        }
-        else {
-            setTimeout(function (thisEase = easeMath(i/animationFrames), lastEase = easeMath((i-1)/animationFrames)) {
-                for (let i = 0; i < 3; i++) {
-                    // transPattern[i].weightValue += patternDiff[i].weightValue / animationFrames;
-                    // transPattern[i].angleF += patternDiff[i].angleF / animationFrames;
-                    // transPattern[i].offset += patternDiff[i].offset / animationFrames;
+        } else {
+            setTimeout(function(thisEase = easeMath((i) / animationFrames), lastEase = easeMath((i - 1) / animationFrames)) { // easing
+                for (let i = 0; i < 3; i++) { // incrementing transPattern properties based on easing values
                     transPattern[i].weightValue += patternDiff[i].weightValue * thisEase - patternDiff[i].weightValue * lastEase;
                     transPattern[i].angleF += patternDiff[i].angleF * thisEase - patternDiff[i].angleF * lastEase;
                     transPattern[i].offset += patternDiff[i].offset * thisEase - patternDiff[i].offset * lastEase;
                     transPattern[i].nodes = weightedNodes(transPattern[i].weightValue);
+                    transPattern[i].fillStyle = changeColor(lastPattern[i].fillStyle, activePattern[i].fillStyle, thisEase);
                 }
-                makePattern(transPattern, false);
+                makePattern(transPattern, false); // false means do not set lastPattern = activePattern
             }, i * 1000 / fps);
         }
     }
 }
 
+function easeMath(x) { // x = completion of animation in which 0 is start, 1 is end
+    return x < 0.5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2; // ease in/out quad
+}
 
 
 
-// ------SIDEBAR TAB SWITCHING------
+
+
+
+
+// ------ON RESIZE------
+
+let cvsCentre = {};
+
+function resizeCanvas() {
+    let targetHeight = body.clientHeight;
+    let targetWidth = body.clientWidth;
+    cvs.setAttribute("height", targetHeight);
+    cvs.setAttribute("width", targetWidth);
+
+    cvsCentre = { x: targetWidth / 2, y: targetHeight / 2 }
+    makePattern(activePattern);
+}
+window.addEventListener("resize", resizeCanvas);
+
+// ------ON LOAD------
+
+window.addEventListener("load", function() {
+    resizeCanvas();
+    randomPattern();
+    makePattern(activePattern, true);
+});
+
+let ctx = cvs.getContext("2d");
+ctx.save();
+
+for (let i = 0; i < 3; i++) {
+    activePattern[i] = Object.assign({}, fDefaultSettings);
+}
+
+
+
+
+
+// ------SIDE PANEL------
+
+// OPEN PANEL
 
 function openPanel(evt, panelName) {
 
@@ -430,35 +527,7 @@ function openPanel(evt, panelName) {
 
 }
 
-// close all panels
-
-// var nodes = document.querySelectorAll('.sidebar__item.active');
-// Array.from(nodes).forEach(function (node) {
-//     node.addEventListener('click', function () {
-//         closePanel()
-//     })
-// });
-
-function closePanel() {
-
-    //Declare all variables
-    var i, panelContent, panelLinks;
-
-    // Get all elements with class="tab__content" and hide them
-    panelContent = document.getElementsByClassName("sidebar__panel");
-    for (i = 0; i < panelContent.length; i++) {
-        panelContent[i].style.display = "none";
-    }
-
-    // Get all elements with class="tab__button" and remove the class "active"
-    panelLinks = document.getElementsByClassName("sidebar__item");
-    for (i = 0; i < panelLinks.length; i++) {
-        panelLinks[i].className = panelLinks[i].className.replace(" active", "");
-    }
-}
-
-// ------SETTINGS TAB SWITCHING------
-
+// Switch to SETTINGS TAB
 function openTab(evt, tabName) {
 
     //Declare all variables
@@ -481,192 +550,7 @@ function openTab(evt, tabName) {
     evt.currentTarget.className += " active";
 }
 
-
-
-
-
-// ------SLIDER/INPUT EVENTS------
-
-// Update the current slider values 
-// Update activePattern obj
-// (each time you drag the slider handle)
-for (let i = 0; i < tabFields.length; i++) {
-
-    // weight
-    tabFields[i].weightRange.oninput = function () {
-        tabFields[i].weightText.innerHTML = this.value;
-        activePattern[i].weightValue = parseFloat(this.value);
-        activePattern[i].nodes = weightedNodes(activePattern[i].weightValue);
-    }
-    tabFields[i].weightRange.addEventListener('input', function (e) {
-        tabFields[i].weightText.value = e.target.value;
-        activePattern[i].weightValue = parseFloat(e.target.value);
-        activePattern[i].nodes = weightedNodes(activePattern[i].weightValue);
-
-        if (animateStatus == false) {
-            makePattern(activePattern);
-        }
-    });
-    tabFields[i].weightText.addEventListener('input', function (e) {
-        tabFields[i].weightRange.value = e.target.value;
-        activePattern[i].weightValue = parseFloat(e.target.value);
-        activePattern[i].nodes = weightedNodes(activePattern[i].weightValue);
-        
-        if (animateStatus == false) {
-            makePattern(activePattern);
-        }
-    });
-
-    // angle
-    tabFields[i].angleRange.oninput = function () {
-        tabFields[i].angleText.innerHTML = this.value;
-        activePattern[i].angleF = parseFloat(this.value);
-    }
-    tabFields[i].angleRange.addEventListener('input', function (e) {
-        tabFields[i].angleText.value = e.target.value;
-        activePattern[i].angleF = parseFloat(e.target.value);
-        
-        if (animateStatus == false) {
-            makePattern(activePattern);
-        }
-    });
-    tabFields[i].angleText.addEventListener('input', function (e) {
-        tabFields[i].angleRange.value = e.target.value;
-        activePattern[i].angleF = parseFloat(e.target.value);
-        
-        if (animateStatus == false) {
-            makePattern(activePattern);
-        }
-    });
-
-    // offset
-    tabFields[i].offsetRange.oninput = function () {
-        tabFields[i].offsetText.innerHTML = this.value;
-        activePattern[i].offset = parseFloat(this.value);
-    }
-
-    tabFields[i].offsetRange.addEventListener('input', function (e) {
-        tabFields[i].offsetText.value = e.target.value;
-        activePattern[i].offset = parseFloat(e.target.value);
-        
-        if (animateStatus == false) {
-            makePattern(activePattern);
-        }
-    });
-    tabFields[i].offsetText.addEventListener('input', function (e) {
-        tabFields[i].offsetRange.value = e.target.value;
-        activePattern[i].offset = parseFloat(e.target.value);
-        
-        if (animateStatus == false) {
-            makePattern(activePattern);
-        }
-    });
-
-}
-
-function setFields(pattern) { // sets sliders/inputs based on activePattern values
-    for (let i = 0; i < 3; i++) {
-        tabFields[i].weightRange.value = pattern[i].weightValue;
-        tabFields[i].weightText.innerHTML = Math.round(pattern[i].weightValue);
-        tabFields[i].weightText.value = Math.round(pattern[i].weightValue);
-        tabFields[i].angleRange.value = pattern[i].angleF;
-        tabFields[i].angleText.innerHTML = Math.round(pattern[i].angleF);
-        tabFields[i].angleText.value = Math.round(pattern[i].angleF);
-        tabFields[i].offsetRange.value = pattern[i].offset;
-        tabFields[i].offsetText.value = Math.round(pattern[i].offset);
-        tabFields[i].offsetText.innerHTML = Math.round(pattern[i].offset);
-    }
-}
-
-
-
-// ------ON RESIZE------
-
-let cvsCentre = {};
-
-function resizeCanvas() {
-    let targetHeight = cvsContainer.clientHeight;
-    let targetWidth = (targetHeight / 9) * 16;
-    cvs.setAttribute("height", targetHeight);
-    cvs.setAttribute("width", targetWidth);
-
-    cvsCentre = { x: targetWidth / 2, y: targetHeight / 2 }
-    makePattern(activePattern);
-}
-window.addEventListener("resize", resizeCanvas);
-
-
-
-
-// ------ON LOAD------
-
-window.addEventListener("load", function () {
-    resizeCanvas();
-    randomPattern();
-    makePattern(activePattern, true);
-});
-
-let ctx = cvs.getContext("2d");
-ctx.save();
-
-let lastPattern = [];
-let activePattern = [];
-
-for (let i = 0; i < 3; i++) {
-    activePattern[i] = Object.assign({}, fDefaultSettings);
-}
-
-let animateStatus = false;
-
-
-// ------TOP LEFT BAR FUNCTIONALITY------
-
-const randomizeButton = document.getElementById("topbar__button");
-
-randomizeButton.addEventListener('click', function () {
-
-    if (animateStatus == false) {
-        randomPattern();
-        animatePattern();
-    }
-});
-
-// ------BUTTON EVENTS------
-
-const randomPatternButton = document.getElementById('randomize');
-
-randomPatternButton.addEventListener('click', function () {
-    
-    if (animateStatus == false) {
-        randomPattern();
-        animatePattern();
-    }
-});
-
-
-// ------IMAGE EXPORT------
-
-const pngButton = document.getElementById("export-png");
-const svgButton = document.getElementById("export-svg");
-
-pngButton.addEventListener('click', pngExport);
-
-function pngExport() {
-    // var canvas = document.getElementById("canvas");
-    // var img = canvas.toDataURL("image/png");
-
-    // document.write('<img src="'+img+'"/>');
-
-    const link = document.createElement('a');
-    link.download = 'fractal.png';
-    link.href = canvas.toDataURL();
-    link.click();
-    link.delete;
-}
-
-// ------EXPORT TAB SWITCHING------
-
-
+// Switch to EXPORT TAB
 function openEtab(evt, tabName) {
 
     //Declare all variables
@@ -689,36 +573,163 @@ function openEtab(evt, tabName) {
     evt.currentTarget.className += " active";
 }
 
-// ------ZOOM IN/OUT FUNCTIONALITY------
+// CLOSE PANEL
+function closePanel() {
 
-let zoomInButton = document.getElementById("zoom-in");
-let zoomOutButton = document.getElementById("zoom-out");
+    //Declare all variables
+    var i, panelContent, panelLinks;
 
-zoomInButton.addEventListener('click', zoomIn);
-zoomOutButton.addEventListener('click', zoomOut);
-
-function zoomIn() {
-    fDefaultSettings.scale += 0.1;
-    for (let i = 0; i < 3; i++) {
-        activePattern[i].scale += 0.1;
+    // Get all elements with class="tab__content" and hide them
+    panelContent = document.getElementsByClassName("sidebar__panel");
+    for (i = 0; i < panelContent.length; i++) {
+        panelContent[i].style.display = "none";
     }
-    makePattern(activePattern);
+
+    // Get all elements with class="tab__button" and remove the class "active"
+    panelLinks = document.getElementsByClassName("sidebar__item");
+    for (i = 0; i < panelLinks.length; i++) {
+        panelLinks[i].className = panelLinks[i].className.replace(" active", "");
+    }
 }
 
-function zoomOut() {
+// close all panels
 
-    // if (fDefaultSettings.scale <= 0.15) {
-    fDefaultSettings.scale -= 0.1;
-    for (let i = 0; i < 3; i++) {
-        activePattern[i].scale -= 0.1;
+// var nodes = document.querySelectorAll('.sidebar__item.active');
+// Array.from(nodes).forEach(function (node) {
+//     node.addEventListener('click', function () {
+//         closePanel()
+//     })
+// });
+
+// SLIDER/INPUT EVENTS
+
+// Update the current slider values, update activePattern obj
+for (let i = 0; i < tabFields.length; i++) {
+
+    // weight
+    tabFields[i].weightRange.oninput = function() {
+        tabFields[i].weightText.innerHTML = this.value;
+        activePattern[i].weightValue = parseFloat(this.value);
+        activePattern[i].nodes = weightedNodes(activePattern[i].weightValue);
     }
-    makePattern(activePattern);
-    // }
+    tabFields[i].weightRange.addEventListener('input', function(e) {
+        tabFields[i].weightText.value = e.target.value;
+        activePattern[i].weightValue = parseFloat(e.target.value);
+        activePattern[i].nodes = weightedNodes(activePattern[i].weightValue);
+
+        if (animateStatus == false) {
+            makePattern(activePattern);
+        }
+    });
+    tabFields[i].weightText.addEventListener('input', function(e) {
+        tabFields[i].weightRange.value = e.target.value;
+        activePattern[i].weightValue = parseFloat(e.target.value);
+        activePattern[i].nodes = weightedNodes(activePattern[i].weightValue);
+
+        if (animateStatus == false) {
+            makePattern(activePattern);
+        }
+    });
+
+    // angle
+    tabFields[i].angleRange.oninput = function() {
+        tabFields[i].angleText.innerHTML = this.value;
+        activePattern[i].angleF = parseFloat(this.value);
+    }
+    tabFields[i].angleRange.addEventListener('input', function(e) {
+        tabFields[i].angleText.value = e.target.value;
+        activePattern[i].angleF = parseFloat(e.target.value);
+
+        if (animateStatus == false) {
+            makePattern(activePattern);
+        }
+    });
+    tabFields[i].angleText.addEventListener('input', function(e) {
+        tabFields[i].angleRange.value = e.target.value;
+        activePattern[i].angleF = parseFloat(e.target.value);
+
+        if (animateStatus == false) {
+            makePattern(activePattern);
+        }
+    });
+
+    // offset
+    tabFields[i].offsetRange.oninput = function() {
+        tabFields[i].offsetText.innerHTML = this.value;
+        activePattern[i].offset = parseFloat(this.value);
+    }
+
+    tabFields[i].offsetRange.addEventListener('input', function(e) {
+        tabFields[i].offsetText.value = e.target.value;
+        activePattern[i].offset = parseFloat(e.target.value);
+
+        if (animateStatus == false) {
+            makePattern(activePattern);
+        }
+    });
+    tabFields[i].offsetText.addEventListener('input', function(e) {
+        tabFields[i].offsetRange.value = e.target.value;
+        activePattern[i].offset = parseFloat(e.target.value);
+
+        if (animateStatus == false) {
+            makePattern(activePattern);
+        }
+    });
+
 }
 
+// sets sliders/inputs based on pattern array values
+function setFields(pattern) {
+    for (let i = 0; i < 3; i++) {
+        tabFields[i].weightRange.value = pattern[i].weightValue;
+        tabFields[i].weightText.innerHTML = Math.round(pattern[i].weightValue);
+        tabFields[i].weightText.value = Math.round(pattern[i].weightValue);
+        tabFields[i].angleRange.value = pattern[i].angleF;
+        tabFields[i].angleText.innerHTML = Math.round(pattern[i].angleF);
+        tabFields[i].angleText.value = Math.round(pattern[i].angleF);
+        tabFields[i].offsetRange.value = pattern[i].offset;
+        tabFields[i].offsetText.value = Math.round(pattern[i].offset);
+        tabFields[i].offsetText.innerHTML = Math.round(pattern[i].offset);
+    }
+}
+
+// random pattern button
+const randomPatternButton = document.getElementById('randomize');
+randomPatternButton.addEventListener('click', function() {
+    if (animateStatus == false) {
+        randomPattern();
+        animatePattern(800);
+    }
+});
+
+// ADJUST ANIMATION SPEED WITH SLIDERS 
+
+var animationInput = document.querySelector(".animate-text");
+var animationRange = document.querySelector(".animate-range");
+
+animationRange.oninput = function() {
+    animationInput.innerHTML = this.value;
+    animationTime = parseFloat(this.value);
+}
+animationRange.addEventListener('input', function(e) {
+    animationInput.value = e.target.value;
+    animationTime = parseFloat(e.target.value);
+});
+animationInput.addEventListener('input', function(e) {
+    animationRange.value = e.target.value;
+    animationTime = parseFloat(e.target.value);
+});
+
+// function animationSlider(val) {
+//     animationInput.innerHTML = val;
+// }
+
+// animationTime = animationInput.getAttribute("value");
 
 
-// ------ANIMATE BETWEEN RANDOMIZED PATTERNS------
+
+// ANIMATE BETWEEN RANDOMIZED PATTERNS
+
 let autoplay = false;
 let animateButton = document.getElementById("animate-button");
 let autoplayInterval;
@@ -727,13 +738,134 @@ animateButton.addEventListener('click', function() {
     autoplay = !autoplay;
 
     if (autoplay) {
+
+        randomPattern();
+        animatePattern(animationTime);
+
         autoplayInterval = setInterval(function() {
             randomPattern();
-            animatePattern();
-        },animationTime);
-    }
-    else {
+            animatePattern(animationTime);
+        }, animationTime);
+        freezeControls();
+    } else {
         clearInterval(autoplayInterval);
+        unfreezeControls();
     }
 
+});
+
+function freezeControls() {
+    var controls = document.getElementById("animate-controls");
+    controls.classList.add("frozen");
+    const button = document.getElementById("animate-button");
+    button.innerHTML = "Stop Animation";
+}
+
+function unfreezeControls() {
+    var controls = document.getElementById("animate-controls");
+    controls.classList.remove("frozen");
+    const button = document.getElementById("animate-button");
+    button.innerHTML = "Start Animation";
+}
+
+// IMAGE EXPORT
+
+const pngButton = document.getElementById("export-png");
+const svgButton = document.getElementById("export-svg");
+
+pngButton.addEventListener('click', pngExport);
+
+function pngExport() {
+    // var canvas = document.getElementById("canvas");
+    // var img = canvas.toDataURL("image/png");
+
+    // document.write('<img src="'+img+'"/>');
+
+    const link = document.createElement('a');
+    link.download = 'fractal.png';
+    link.href = canvas.toDataURL();
+    link.click();
+    link.delete;
+}
+
+
+
+
+
+
+// TOP BAR FUNCTIONALITY
+
+const randomizeButton = document.getElementById("topbar__button");
+
+randomizeButton.addEventListener('click', function() {
+
+    if (animateStatus == false) {
+        randomPattern();
+        animatePattern(800);
+    }
+});
+
+
+// ZOOM IN/OUT FUNCTIONALITY
+
+let zoomInButton = document.getElementById("zoom-in");
+let zoomOutButton = document.getElementById("zoom-out");
+
+zoomInButton.addEventListener('click', zoomIn);
+zoomOutButton.addEventListener('click', zoomOut);
+
+const zoomIncrement = 0.1;
+
+function zoomIn() {
+    fDefaultSettings.scale += zoomIncrement;
+    for (let i = 0; i < 3; i++) {
+        lastPattern[i].scale += zoomIncrement;
+        activePattern[i].scale += zoomIncrement;
+    }
+    makePattern(activePattern);
+}
+
+function zoomOut() {
+
+    // if (fDefaultSettings.scale <= 0.15) {
+    fDefaultSettings.scale -= zoomIncrement;
+    for (let i = 0; i < 3; i++) {
+        lastPattern[i].scale -= zoomIncrement;
+        activePattern[i].scale -= zoomIncrement;
+    }
+    makePattern(activePattern);
+    // }
+}
+
+// DARK MODE TOGGLE
+
+let darkMode = document.getElementById("dark-mode");
+
+darkMode.addEventListener('click', function() {
+
+    if (darkMode.checked == true) {
+        body.classList.add('dark');
+        document.getElementById('topbar__button').classList.add('dark');
+        document.getElementById('header__bar').classList.add('dark');
+        document.getElementById('bottom__bar').classList.add('dark');
+        document.getElementById('sidebar').classList.add('dark');
+        document.getElementById('zoom-in').classList.add('dark');
+        document.getElementById('zoom-out').classList.add('dark');
+        document.getElementById('panel__settings').classList.add('dark');
+        document.getElementById('panel__animate').classList.add('dark');
+        document.getElementById('panel__export').classList.add('dark');
+        document.getElementById('panel__info').classList.add('dark');
+    } else {
+        body.classList.remove('dark');
+        document.getElementById('topbar__button').classList.remove('dark');
+        document.getElementById('header__bar').classList.remove('dark');
+        document.getElementById('bottom__bar').classList.remove('dark');
+        document.getElementById('sidebar').classList.remove('dark');
+        document.getElementById('zoom-in').classList.remove('dark');
+        document.getElementById('zoom-out').classList.remove('dark');
+        document.getElementById('panel__settings').classList.remove('dark');
+        document.getElementById('panel__animate').classList.remove('dark');
+        document.getElementById('panel__export').classList.remove('dark');
+        document.getElementById('panel__info').classList.remove('dark');
+    }
 });

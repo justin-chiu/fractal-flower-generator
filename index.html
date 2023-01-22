@@ -7,33 +7,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
     <!--<link rel="stylesheet" href="css/colorpicker.css/">-->
-    <title>Text Patterns • Sean+Justin</title>
+    <title>Fractal Flower Generator • Sean & Justin</title>
 </head>
 
 <body>
-    <div class="header__bar"></div>
+    <div class="header__bar" id="header__bar">
         <div class="header__left">
-            <div class="bgcol__container">
-            </div>
+            <!-- <div class="filename__container">
+                <h2 class="file-name">My File Name</h2>
+            </div> -->
         </div>
         <div class="header__right">
+            <!-- <div class="bgcol__container">
+                <div class="bgcol__sample"></div>
+                <h1 class="bgcol__text">FF0000</h1>
+            </div> -->
+            <label class="switch">
+                <input type="checkbox" id="dark-mode">
+                <span class="toggle round"></span>
+            </label>
+            <div class="button__container">
+                <!-- <button id="share__button">Share</button> -->
+                <button id="topbar__button">Randomize</button>
+            </div>
         </div>
     </div>
     <div class="topbar">
-        <button id="topbar__button">Randomize</button>
         <div class="zoom__wrapper">
             <div class="zoom__button" id="zoom-in"><img src="assets/plus.svg"></div>
             <div class="zoom__button" id="zoom-out"><img src="assets/minus.svg"></div>
         </div>
     </div>
-    <div class="bottombar">
+    <div class="bottombar" id="bottom__bar">
         <div class="logo__wrapper">
             <img id="logo__bottom" src="assets/logo.svg">
-            <h3 id="logo__text">Fractal Generator</h3>
+            <h3 id="logo__text">Fractal Flower</h3>
         </div>
     </div>
     </div>
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar__top">
             <div class="sidebar__logo"><img id="logo" src="assets/logo.svg"></div>
             <div class="sidebar__item" id="item_1" onclick="openPanel(event, 'panel__settings')"><img class="sidebar__icon" src="assets/gear-black.svg"></div>
@@ -46,7 +58,7 @@
     </div>
     <div class="sidebar__panel" id="panel__settings">
         <div class="panel__close" id="close_1" onclick="closePanel();"><img id="close__icon" src="assets/arrow-left.svg"></div>
-        <div class="panel__item">
+        <div class="panel__item centered">
             <h1>Pattern Settings</h1>
         </div>
         <div class="settings__tabs">
@@ -89,7 +101,7 @@
                 </div>
             </div>
             <div class="panel__item">
-                <div class="item__top">
+                <!-- <div class="item__top">
                     <h2>Ring Colour</h2>
                 </div>
                 <div class="item__bottom">
@@ -98,13 +110,13 @@
                         <div class="color__value">
                             <div class="value__hex"></div>
                             <div class="value__opacity"></div>
-                     </div>
-                 </div>
+                        </div>
+                    </div>
                     <label class="c-container">
                         <input type="checkbox" checked="checked">
                         <span class="checkmark"></span><h2 class="reg">Global Colour</h2>
                     </label>
-                </div>
+                </div> -->
             </div>
         </div>
         <div class="tab__content" id="tab_2">
@@ -171,19 +183,28 @@
     </div>
     <div class="sidebar__panel" id="panel__animate">
         <div class="panel__close" onclick="closePanel();"><img id="close__icon" src="assets/arrow-left.svg"></div>
-        <div class="panel__item">
+        <div class="panel__item centered">
             <h1>Animations</h1>
         </div>
-        <div class="placeholder"><img id="placeholder__animate" src="assets/animate-black.svg">
-            <h3 class="grey-text">Fractal animation presets <br />will be available soon</h3>
+        <div class="panel__item" id="animate-controls">
+            <div class="item__top">
+                <h2>Animation Speed</h2>
+                <input min="200" max="10000" value="800" class="input animate-text">
+            </div>
+            <div class="item__bottom">
+                <input type="range" min="200" max="10000" value="800" class="slider animate-range">
+            </div>
         </div>
         <div class="panel__item">
-            <button class="button" id="animate-button">Animate Pattern</button>
+            <h3 class="grey-text">The animation must be paused to adjust the slider</h3>
+        </div>
+        <div class="panel__item">
+            <button class="button" id="animate-button">Start Animation</button>
         </div>
     </div>
     <div class="sidebar__panel" id="panel__export">
         <div class="panel__close" onclick="closePanel();"><img id="close__icon" src="assets/arrow-left.svg"></div>
-        <div class="panel__item">
+        <div class="panel__item centered">
             <h1>Image Export</h1>
         </div>
         <div class="export__tabs">
@@ -196,7 +217,10 @@
         </div>
         <div class="e-tab__content" id="e-tab_1">
             <div class="panel__item">
-                <button class="button" id="export-svg">SVG</button>
+                <h3 class="reg-text">This feature is not yet available</h3>
+            </div>
+            <div class="panel__item">
+                <button class="button na" id="export-svg">SVG</button>
             </div>
         </div>
         <div class="e-tab__content" id="e-tab_2">
@@ -212,13 +236,13 @@
     </div>
     <div class="sidebar__panel" id="panel__info">
         <div class="panel__close" onclick="closePanel();"><img id="close__icon" src="assets/arrow-left.svg"></div>
-        <div class="panel__item">
+        <div class="panel__item centered">
             <h1>About</h1>
         </div>
         <div class="panel__item">
             <img id="f-dots" src="assets/fdots.svg">
             <h3><span style="font-weight: 400">Kepler Std.</span> Bold Italic</h3>
-            <p>Fractal Generator is a web demo that generates fractal patterns from the letter ‘f’ using Javascript Canvas. It creates 30 instances of the same letter ‘f’, arranged in 3 unique circular formations. Each formation is assigned different properties
+            <p>Fractal Flower is a web demo that generates fractal patterns from the letter ‘f’ using Javascript Canvas. It creates 30 instances of the same letter ‘f’, arranged in 3 unique circular formations. Each formation is assigned different properties
                 including letter weight, angle, and radius — allowing for an infinite number of pattern possibilities. </p>
         </div>
         <div class="panel__item">
